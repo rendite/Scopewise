@@ -21,6 +21,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Scopewise.Api\Scopewise.Api.csproj" />
+    <ProjectReference Include="..\..\src\Scopewise.Interview\Scopewise.Interview.csproj" />
   </ItemGroup>
 
 </Project>

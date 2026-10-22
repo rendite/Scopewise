@@ -32,3 +32,6 @@ npm-debug.log*
 # Claude Code – personal settings stay local
 .claude/settings.local.json
 CLAUDE.local.md
+
+# InterviewLab output (may contain transcripts)
+simulation-results/

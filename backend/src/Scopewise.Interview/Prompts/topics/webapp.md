@@ -1,0 +1,7 @@
+- **goals** – the problem the app solves, for whom, and how it is solved today (spreadsheets, paper, another tool). What does success look like?
+- **audience** – the different user groups (e.g. customers, staff, admins), how many people, how tech-savvy.
+- **scope** – the most important things each user group must be able to do; what is essential for a first version and what can come later.
+- **design** – tools or apps they like using, branding, mobile vs desktop usage.
+- **content** – data the app works with, where it comes from today, who maintains it.
+- **technical** – systems to connect (accounting, CRM, calendars, payments), login requirements, data protection and sensitive data.
+- **budgetTimeline** – rough budget range, deadline, plans after the first version, who decides on their side.
