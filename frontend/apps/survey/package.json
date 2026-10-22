@@ -1,0 +1,16 @@
+{
+  "name": "@scopewise/survey",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@scopewise/shared": "*",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
+  }
+}

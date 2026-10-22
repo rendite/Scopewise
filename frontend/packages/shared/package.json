@@ -1,0 +1,13 @@
+{
+  "name": "@scopewise/shared",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./survey": "./src/survey.ts",
+    "./dashboard": "./src/dashboard.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  }
+}
