@@ -38,8 +38,8 @@ public static class SimulateCommand
                 var result = await RunOneAsync(llm, model, persona, personaModel, pause, outDir);
                 results.Add(result);
                 Console.WriteLine(result.Error is null
-                    ? $"{result.Questions} questions · avg {result.AvgLatency:F1}s · ~{result.ClientMinutes:F0} min · {result.EndReason}"
-                    : $"FAILED: {result.Error}");
+                    ? $" {result.Questions} questions · avg {result.AvgLatency:F1}s · ~{result.ClientMinutes:F0} min · {result.EndReason}"
+                    : $" FAILED: {result.Error}");
             }
         }
 
@@ -59,6 +59,7 @@ public static class SimulateCommand
         var tokens = 0;
         var clientSeconds = 0.0;
         var transcript = new StringBuilder($"# {persona.ClientName} – {model}\n\n");
+        var file = Path.Combine(outDir, "transcripts", $"{Safe(model)}--{persona.Id}.md");
         InterviewStep? step = null;
         var wall = Stopwatch.StartNew();
 
@@ -86,6 +87,10 @@ public static class SimulateCommand
                 }
                 transcript.Append($"\n**A:** {answer}\n\n");
                 turns.Add(new InterviewTurn(step.Question.Text, answer));
+
+                // Live progress: one dot per question, transcript saved as we go.
+                Console.Write(".");
+                await File.WriteAllTextAsync(file, transcript.ToString());
             }
 
             transcript.Append($"_Interview ended: {step.DoneReason} after {turns.Count} questions. Final coverage: {ChatCommand.Coverage(step)}_\n\n");
@@ -105,7 +110,6 @@ public static class SimulateCommand
         }
         finally
         {
-            var file = Path.Combine(outDir, "transcripts", $"{Safe(model)}--{persona.Id}.md");
             await File.WriteAllTextAsync(file, transcript.ToString());
         }
     }

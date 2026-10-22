@@ -1,6 +1,7 @@
 // Scopewise InterviewLab – try the interview engine without the web app.
 //
 //   dotnet run --project tools/Scopewise.InterviewLab -- models
+//   dotnet run --project tools/Scopewise.InterviewLab -- ping [--models a,b]   (one tiny request per model)
 //   dotnet run --project tools/Scopewise.InterviewLab -- chat [--type website] [--lang German] [--model <id>]
 //   dotnet run --project tools/Scopewise.InterviewLab -- simulate [--models a,b] [--personas bakery,cardealer]
 //        [--persona-model <id>] [--pause-ms 0] [--out simulation-results]
@@ -38,6 +39,20 @@ try
                 Console.WriteLine(name);
             }
             break;
+        case "ping":
+            foreach (var model in options.GetList("models") is { Length: > 0 } list ? list : [geminiOptions.Model])
+            {
+                try
+                {
+                    var reply = await gemini.GenerateAsync(new LlmRequest("Reply with the single word: ok", "ping", Model: model));
+                    Console.WriteLine($"{model,-28} ok      {reply.Latency.TotalSeconds:F1}s");
+                }
+                catch (Exception e) when (e is not InvalidOperationException)
+                {
+                    Console.WriteLine($"{model,-28} FAILED  {e.Message.ReplaceLineEndings(" ")}");
+                }
+            }
+            break;
         case "chat":
             await ChatCommand.RunAsync(gemini, geminiOptions.Model, options);
             break;
@@ -45,7 +60,7 @@ try
             await SimulateCommand.RunAsync(gemini, geminiOptions.Model, options);
             break;
         default:
-            Console.WriteLine("Usage: InterviewLab <models|chat|simulate> [options]. See the comment at the top of Program.cs.");
+            Console.WriteLine("Usage: InterviewLab <models|ping|chat|simulate> [options]. See the comment at the top of Program.cs.");
             return 1;
     }
 }
