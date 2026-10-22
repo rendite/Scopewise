@@ -1,0 +1,33 @@
+# OS / editors
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.swp
+
+# Secrets – never commit these
+.env
+.env.*
+!.env.example
+*.pem
+
+# .NET
+bin/
+obj/
+*.user
+*.suo
+TestResults/
+*.trx
+
+# Node / Vite
+node_modules/
+dist/
+*.tsbuildinfo
+.vite/
+coverage/
+npm-debug.log*
+
+# Claude Code – personal settings stay local
+.claude/settings.local.json
+CLAUDE.local.md

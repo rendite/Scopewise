@@ -1,0 +1,25 @@
+name: Task / Feature
+description: Something we want to build
+labels: ["task"]
+body:
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options: [backend, dashboard, survey, shared, infra, docs]
+    validations:
+      required: true
+  - type: textarea
+    id: goal
+    attributes:
+      label: Goal
+      description: What should be possible once this is done?
+    validations:
+      required: true
+  - type: textarea
+    id: done
+    attributes:
+      label: Done when
+      description: A short checklist that tells us the task is finished.
+      value: |
+        - [ ]
