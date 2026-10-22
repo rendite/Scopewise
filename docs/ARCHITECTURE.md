@@ -18,7 +18,7 @@
  │  Auth (Identity) · Surveys · Interview engine · Briefing builder│
  └────────┬───────────────────────────────────────┬────────────────┘
           ▼                                       ▼
-   PostgreSQL (EF Core)                   Anthropic Claude API
+   PostgreSQL (EF Core)                   Google Gemini API
 ```
 
 ## Repository layout
@@ -27,6 +27,8 @@
 backend/                     ASP.NET Core 10 (C#)
   Scopewise.slnx
   src/Scopewise.Api/         Web API (minimal APIs)
+  src/Scopewise.Interview/   Interview engine + briefing generator, prompts, Gemini client
+  tools/Scopewise.InterviewLab/  Console tool: chat with the engine, simulate clients
   tests/Scopewise.Api.Tests/ xUnit tests
 frontend/                    npm workspaces
   apps/dashboard/            Agency dashboard   – Vite + React + TS (port 5173)
@@ -57,17 +59,36 @@ the dashboard.
    - stores the answer,
    - sends the whole conversation so far plus an **interviewer system prompt**
      (tailored to the project type and a checklist of briefing topics) to
-     Claude,
-   - receives the next question plus a progress estimate and a flag whether
-     enough information has been collected.
+     Gemini,
+   - receives, as structured JSON, the model's assessment of each topic
+     (`missing` / `partial` / `covered`), a done-flag and the next question.
 4. The survey UI shows **only the current question** on a fresh screen,
    never the history.
-5. When done, the backend asks Claude to turn the conversation into a
+5. When done, the backend asks Gemini to turn the conversation into a
    structured **briefing** (fixed sections, JSON) and stores it. The agency
    sees it in the dashboard and can export it.
 
 The LLM is only ever called from the backend. The API key never reaches the
 browser.
+
+### Inside the interview engine
+
+```
+InterviewEngine.NextAsync(context, previous turns)
+  1. question limit reached? → done, no model call
+  2. build prompt: Prompts/interviewer.md + Prompts/topics/<projectType>.md
+                   + transcript (client answers HTML-encoded) + questions left
+  3. ILlmClient → Gemini, JSON schema enforced
+  4. parse; on invalid JSON retry once
+  5. guardrails: model says "done" before MinQuestions → ask again
+  6. progress = covered topics (partial = ½) / 7, capped at 95 % until done
+```
+
+The topics are the briefing sections: goals, audience, scope, design,
+content, technical, budget & timeline. Because the model re-assesses all
+of them every turn, it can skip what is already answered, follow up on vague
+answers and spend the remaining questions on what is still missing. The
+client's language is followed automatically; the briefing is always English.
 
 ## Key decisions
 
@@ -77,6 +98,6 @@ browser.
 | Backend     | ASP.NET Core 10 minimal APIs                   |
 | Database    | PostgreSQL via EF Core (Npgsql)                |
 | Auth        | ASP.NET Identity, cookie auth                  |
-| LLM         | Claude via the official `Anthropic` NuGet SDK  |
+| LLM         | Google Gemini via `Google.GenAI`, behind `ILlmClient` |
 | Language    | English for code, docs and UI                  |
 | Hosting     | Not decided yet (see PLAN.md)                  |

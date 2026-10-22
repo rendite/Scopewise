@@ -1,0 +1,7 @@
+- **goals** – why they want the website and what it should achieve for the business (more enquiries, bookings, trust, replacing an old site …). What does success look like?
+- **audience** – who the visitors are and what they come for. Most important group first.
+- **scope** – pages and sections they expect, and anything visitors should be able to do (contact form, booking, newsletter, downloads, multiple languages).
+- **design** – the look and feel they want, websites they like or dislike, existing logo and brand colours.
+- **content** – who provides texts, photos and videos; what already exists; who will update the site later and how often.
+- **technical** – existing website, domain and hosting, tools that must connect (booking system, newsletter, analytics), legal requirements.
+- **budgetTimeline** – rough budget range, deadline or launch event, who decides on their side.

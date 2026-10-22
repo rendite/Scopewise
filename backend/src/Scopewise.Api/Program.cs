@@ -1,6 +1,9 @@
+using Scopewise.Interview;
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddOpenApi();
+builder.Services.AddInterview(builder.Configuration);
 
 // The dashboard and survey apps run on their own origins during development.
 var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];

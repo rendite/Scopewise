@@ -19,7 +19,7 @@ To avoid stepping on each other's toes, each person owns one stream:
 | --------------------- | ------------------------------- | ------------------------------------------- |
 | **A – Frontend**      | `frontend/`                     | Survey page, dashboard UI                   |
 | **B – Backend core**  | `backend/` (Data, Auth, Surveys)| Database, login, survey CRUD                |
-| **C – AI engine**     | `backend/` (Features/Interview) | Prompts, Claude integration, briefing       |
+| **C – AI engine**     | `backend/src/Scopewise.Interview` | Prompts, Gemini integration, briefing     |
 
 Streams B and C both work in `backend/` but in different feature folders.
 Agree on names who takes which stream and note it here.
@@ -44,7 +44,7 @@ Agree on names who takes which stream and note it here.
 | 3  | Dashboard UI shell: login page, survey list, create-survey dialog, survey detail (mock data) | A |
 | 4  | EF Core + Npgsql setup, first migration (Agency, User, Survey, InterviewTurn, Briefing) | B |
 | 5  | ASP.NET Identity with cookie auth: register/login/logout/me endpoints | B |
-| 6  | Interview engine spike: system prompt + Claude call that returns next question/progress/done as structured output; console test with 3 fake clients | C |
+| 6  | Interview engine: system prompt + Gemini call that returns coverage/next question/done as structured output; InterviewLab console with chat + 3 simulated clients | C |
 
 ### Phase 2 – Core features
 
@@ -72,7 +72,7 @@ Agree on names who takes which stream and note it here.
 | #  | Task                                                                 | Stream |
 | -- | -------------------------------------------------------------------- | ------ |
 | 18 | Decide hosting (e.g. Azure, Render, Fly.io, Hetzner) and set up deployment | all |
-| 19 | GDPR: privacy policy, data processing agreements (hosting, Anthropic), EU data location, data deletion | all |
+| 19 | GDPR: privacy policy, data processing agreements (hosting, Google), EU data location, data deletion; move from Gemini free tier to paid tier before real client data | all |
 | 20 | Billing / subscriptions (e.g. Stripe)                                | B |
 | 21 | Multi-language surveys (German first?)                               | A + C |
 
@@ -80,5 +80,7 @@ Agree on names who takes which stream and note it here.
 
 - Pricing model (per seat, per survey, flat)?
 - Should agencies edit the briefing before sharing it with their team?
-- Which model gives the best quality/latency trade-off for interview turns?
-  (Start with `claude-opus-5-5`, measure, then decide.)
+- Which Gemini model gives the best quality/latency trade-off for interview
+  turns? Measure with `InterviewLab simulate --models a,b`, then decide.
+- Do the Gemini free-tier terms allow our use? Check data use and EU rules
+  before any real client data goes through it (#19).

@@ -1,0 +1,7 @@
+- **goals** – the business problem, how it is handled today, and what should be better afterwards.
+- **audience** – who will use the solution, how many people, how tech-savvy.
+- **scope** – the most important things the solution must do; essentials for a first version vs later.
+- **design** – tools they like using, branding, devices it is used on.
+- **content** – data and content involved, where it comes from, who maintains it.
+- **technical** – existing systems to replace or connect, data protection, hosting preferences.
+- **budgetTimeline** – rough budget range, deadline, who decides on their side.

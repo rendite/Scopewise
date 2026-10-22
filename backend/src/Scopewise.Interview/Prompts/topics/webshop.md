@@ -1,0 +1,7 @@
+- **goals** – why they want to sell online, current sales channels, what success looks like (revenue, reach, less manual work).
+- **audience** – who the customers are, private or business, which countries.
+- **scope** – what they sell and roughly how many products and variants, shop features (accounts, wishlists, vouchers, subscriptions), payment methods, shipping and pickup options.
+- **design** – look and feel, shops they like or dislike, existing branding.
+- **content** – product photos and descriptions: what exists, who creates them; who manages orders and products day to day.
+- **technical** – existing shop, inventory or accounting system, marketplaces (Amazon, eBay), invoicing, legal requirements for selling online.
+- **budgetTimeline** – rough budget range, launch date or season, who decides on their side.

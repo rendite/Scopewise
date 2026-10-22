@@ -40,6 +40,9 @@ docker compose up -d
 dotnet build
 dotnet test
 dotnet run --project src/Scopewise.Api          # http://localhost:5080
+dotnet run --project tools/Scopewise.InterviewLab -- chat       # be the client yourself
+dotnet run --project tools/Scopewise.InterviewLab -- simulate   # fictional clients, writes a report
+dotnet run --project tools/Scopewise.InterviewLab -- models     # list available Gemini models
 
 # frontend (from frontend/)
 npm install
@@ -66,21 +69,33 @@ the command is not found.
 - Secrets only via `dotnet user-secrets` locally / env vars in production.
   Never in `appsettings*.json`.
 
-## LLM integration
+## LLM integration (interview engine)
 
-- Use the official **`Anthropic` NuGet package**; all Claude calls happen in
-  the backend only. The API key never reaches the frontend.
-- Default model: `claude-opus-5-5`. Make it configurable (`Anthropic:Model`)
-  so we can compare latency/cost later.
-- Interview turns: short outputs, latency matters (client waits 1–4 s).
-  Return next question + progress + done-flag as **structured output**
-  (`output_config.format` with a JSON schema), not free text.
-- Briefing generation: one call at the end, structured output matching the
+- The interview engine is the class library `backend/src/Scopewise.Interview`
+  (no ASP.NET dependency). The API registers it with `AddInterview(...)`.
+- Provider: **Google Gemini** via the official **`Google.GenAI`** NuGet package,
+  hidden behind `ILlmClient` (`Llm/GeminiLlmClient.cs`). Only that class knows
+  about Gemini; switching providers means adding another `ILlmClient`.
+- All LLM calls happen in the backend only. The API key never reaches the frontend.
+  Locally: `dotnet user-secrets set "Gemini:ApiKey" "<key>" --project src/Scopewise.Api`
+  (the InterviewLab tool shares this secrets store).
+- Models are configuration (`Gemini:Model`, `Interview:Model`, `Interview:BriefingModel`),
+  never hard-coded. Compare them with the InterviewLab `simulate` command.
+- The engine is stateless: the caller passes all previous turns every time.
+  Each turn returns topic coverage, done-flag, next question and hint as
+  **structured JSON output** (`Schemas.cs`); progress is computed from coverage.
+  Guardrails (min/max questions, retries) live in `InterviewEngine.cs`.
+- Briefing generation: one call at the end, structured output, mapped to the
   `Briefing` type in `docs/API.md`.
-- Prompts live in versioned files under `src/Scopewise.Api/Features/Interview/Prompts/`,
-  not inline strings.
+- Prompts are Markdown files in `src/Scopewise.Interview/Prompts/` (embedded
+  resources), not inline strings. Topic checklists per project type live in
+  `Prompts/topics/`; their keys must match the `Topic` enum (a test checks this).
 - Treat client answers as untrusted input (prompt injection): they go into
-  user messages only, never into the system prompt.
+  the user message, HTML-encoded inside `<transcript>`, never into the system prompt.
+- Unit tests use `FakeLlmClient` and never call a real model. Real-model runs
+  are manual (InterviewLab) because they cost quota.
+- Free-tier Gemini is fine for development with fictional data only. Real
+  client data needs a paid tier (data use / EU terms) – see issue #19.
 
 ## Frontend conventions (TypeScript/React)
 

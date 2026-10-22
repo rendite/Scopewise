@@ -142,7 +142,7 @@ To test a PR locally: `gh pr checkout <number>`.
 - Backend secrets go in **.NET user-secrets**, which live outside the repo:
   ```bash
   cd backend/src/Scopewise.Api
-  dotnet user-secrets set "Anthropic:ApiKey" "sk-ant-..."
+  dotnet user-secrets set "Gemini:ApiKey" "<your key>"
   ```
 - Frontend: `.env.local` files are ignored by git. Never put API keys in the
   frontend, because everything there is visible to users.

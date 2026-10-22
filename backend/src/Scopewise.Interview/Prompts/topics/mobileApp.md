@@ -1,0 +1,7 @@
+- **goals** – why an app (and not only a website), the problem it solves, what success looks like (downloads, usage, sales).
+- **audience** – who will use the app, in which situations, iPhone/Android mix if known.
+- **scope** – the core things users must be able to do, notifications, offline use, accounts; essentials for the first version vs later.
+- **design** – apps they like, existing branding.
+- **content** – what content the app shows, who creates and updates it.
+- **technical** – existing website or backend systems, payments, camera/location or other device features, data protection.
+- **budgetTimeline** – rough budget range, launch date, ongoing maintenance expectations, who decides on their side.

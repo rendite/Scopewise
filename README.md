@@ -74,13 +74,20 @@ Stop it with `docker compose down`.
 
 ```bash
 cd backend
-dotnet user-secrets set "Anthropic:ApiKey" "sk-ant-..." --project src/Scopewise.Api   # once, ask the team for a key
+dotnet user-secrets set "Gemini:ApiKey" "<your key>" --project src/Scopewise.Api   # once, key from aistudio.google.com
 dotnet run --project src/Scopewise.Api
 ```
 
 API: <http://localhost:5080> · health check: <http://localhost:5080/api/health>
 
 Run the tests with `dotnet test`.
+
+Try the AI interview in the terminal (needs the Gemini key):
+
+```bash
+dotnet run --project tools/Scopewise.InterviewLab -- chat        # you play the client
+dotnet run --project tools/Scopewise.InterviewLab -- simulate    # 3 fictional clients, writes simulation-results/report.md
+```
 
 ### 5. Run the frontend
 
@@ -110,4 +117,4 @@ the roadmap is in [docs/PLAN.md](docs/PLAN.md).
 ## Tech stack
 
 React 19 · TypeScript · Vite · ASP.NET Core 10 · EF Core · PostgreSQL ·
-ASP.NET Identity · Anthropic Claude API · GitHub Actions
+ASP.NET Identity · Google Gemini API · GitHub Actions
