@@ -25,21 +25,27 @@ public static class SimulateCommand
         var personaModel = args.Get("persona-model") ?? defaultModel;
         var pause = TimeSpan.FromMilliseconds(args.GetInt("pause-ms", 0));
         var outDir = args.Get("out") ?? "simulation-results";
+        var maxQuestions = args.GetInt("max-questions", new InterviewOptions().MaxQuestions);
         Directory.CreateDirectory(Path.Combine(outDir, "transcripts"));
 
         Console.WriteLine($"Simulating {personas.Count} client(s) × {models.Length} model(s). Clients played by {personaModel}.\n");
 
         var results = new List<RunResult>();
-        foreach (var model in models)
+        var runs = models.SelectMany(model => personas.Select(persona => (model, persona)));
+        foreach (var (model, persona) in runs)
         {
-            foreach (var persona in personas)
+            Console.Write($"{model,-28} {persona.Id,-12} ");
+            var result = await RunOneAsync(llm, model, persona, personaModel, maxQuestions, pause, outDir);
+            results.Add(result);
+            Console.WriteLine(result.Error is null
+                ? $" {result.Questions} questions · avg {result.AvgLatency:F1}s · ~{result.ClientMinutes:F0} min · {result.EndReason}"
+                : $" FAILED: {result.Error}");
+
+            // Free-tier daily quotas are tiny; further runs would only fail and waste requests.
+            if (result.Error?.Contains("quota", StringComparison.OrdinalIgnoreCase) == true)
             {
-                Console.Write($"{model,-28} {persona.Id,-12} ");
-                var result = await RunOneAsync(llm, model, persona, personaModel, pause, outDir);
-                results.Add(result);
-                Console.WriteLine(result.Error is null
-                    ? $" {result.Questions} questions · avg {result.AvgLatency:F1}s · ~{result.ClientMinutes:F0} min · {result.EndReason}"
-                    : $" FAILED: {result.Error}");
+                Console.WriteLine("\nQuota exhausted – stopping the simulation.");
+                break;
             }
         }
 
@@ -49,10 +55,10 @@ public static class SimulateCommand
     }
 
     private static async Task<RunResult> RunOneAsync(
-        ILlmClient llm, string model, Persona persona, string personaModel, TimeSpan pause, string outDir)
+        ILlmClient llm, string model, Persona persona, string personaModel, int maxQuestions, TimeSpan pause, string outDir)
     {
         var context = new InterviewContext("Pixel & Co", persona.ClientName, persona.ProjectType);
-        var interviewOptions = Options.Create(new InterviewOptions { Model = model, BriefingModel = model });
+        var interviewOptions = Options.Create(new InterviewOptions { Model = model, BriefingModel = model, MaxQuestions = maxQuestions });
         var engine = new InterviewEngine(llm, interviewOptions);
         var turns = new List<InterviewTurn>();
         var latencies = new List<double>();

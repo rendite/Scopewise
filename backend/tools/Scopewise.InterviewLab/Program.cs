@@ -4,7 +4,7 @@
 //   dotnet run --project tools/Scopewise.InterviewLab -- ping [--models a,b]   (one tiny request per model)
 //   dotnet run --project tools/Scopewise.InterviewLab -- chat [--type website] [--lang German] [--model <id>]
 //   dotnet run --project tools/Scopewise.InterviewLab -- simulate [--models a,b] [--personas bakery,cardealer]
-//        [--persona-model <id>] [--pause-ms 0] [--out simulation-results]
+//        [--persona-model <id>] [--max-questions 20] [--pause-ms 0] [--out simulation-results]
 
 using System.Globalization;
 using Microsoft.Extensions.Configuration;
