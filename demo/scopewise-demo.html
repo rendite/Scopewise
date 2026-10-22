@@ -1,0 +1,958 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"></head><body>
+<title>Scopewise Demo</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,500&display=swap">
+<style>
+/* Layout: presenter bar with chapter steps on top; a stage that shows either the
+   agency's browser window or the client's phone next to the engine panel. */
+:root {
+  --stage: #eceef3;
+  --surface: #ffffff;
+  --surface-2: #f5f6f9;
+  --ink: #161922;
+  --ink-2: #5a6070;
+  --ink-3: #9198a7;
+  --line: #e0e3ea;
+  --brand: #3f5efb;       /* Scopewise */
+  --brand-ink: #ffffff;
+  --brand-soft: #e7ebff;
+  --ok: #1f8a4c;
+  --warn: #a8690f;
+  --device: #101318;
+  --shadow: 0 1px 2px rgb(20 24 40 / 0.06), 0 12px 40px rgb(20 24 40 / 0.10);
+
+  --font-ui: "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-q: "Newsreader", "Iowan Old Style", Georgia, serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --stage: #0e1014; --surface: #171a21; --surface-2: #1d2129; --ink: #eef0f4; --ink-2: #a5abb8;
+    --ink-3: #6c7282; --line: #2a2f39; --brand: #8196ff; --brand-ink: #0b0e1a; --brand-soft: #232a4a;
+    --ok: #5fd08f; --warn: #e6b45c; --device: #050608;
+    --shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 12px 40px rgb(0 0 0 / 0.35);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --stage: #0e1014; --surface: #171a21; --surface-2: #1d2129; --ink: #eef0f4; --ink-2: #a5abb8;
+  --ink-3: #6c7282; --line: #2a2f39; --brand: #8196ff; --brand-ink: #0b0e1a; --brand-soft: #232a4a;
+  --ok: #5fd08f; --warn: #e6b45c; --device: #050608;
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 12px 40px rgb(0 0 0 / 0.35);
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  background: var(--stage);
+  color: var(--ink);
+  font-family: var(--font-ui);
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  display: flex;
+  flex-direction: column;
+}
+button { font: inherit; color: inherit; }
+h1, h2, h3, p { margin: 0; }
+:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+
+/* ---------- Presenter bar ---------- */
+.bar {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding-block: 14px;
+  padding-left: max(24px, env(safe-area-inset-left, 0px));
+  padding-right: max(24px, env(safe-area-inset-right, 0px));
+}
+.logo { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 1.05rem; white-space: nowrap; }
+.logo-mark {
+  width: 24px; height: 24px; border-radius: 7px; background: var(--brand);
+  display: grid; place-items: center;
+}
+.logo-mark svg { width: 14px; height: 14px; }
+.steps { display: flex; gap: 6px; margin: 0 auto; padding: 0; list-style: none; flex-wrap: wrap; justify-content: center; }
+.steps button {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 14px 7px 8px; border: 0; border-radius: 999px; background: transparent;
+  color: var(--ink-3); font-weight: 600; font-size: 0.9rem; cursor: pointer;
+  transition: background 0.3s, color 0.3s;
+}
+.steps .n {
+  display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%;
+  background: var(--line); color: var(--ink-2); font-size: 0.75rem; font-variant-numeric: tabular-nums;
+  transition: background 0.3s, color 0.3s;
+}
+.steps button[aria-current="step"] { background: var(--surface); color: var(--ink); box-shadow: var(--shadow); }
+.steps button[aria-current="step"] .n { background: var(--brand); color: var(--brand-ink); }
+.steps button.done .n { background: var(--brand-soft); color: var(--brand); }
+.controls { display: flex; gap: 8px; }
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 8px 14px; border-radius: 9px; border: 1px solid var(--line);
+  background: var(--surface); font-weight: 600; font-size: 0.9rem; cursor: pointer; white-space: nowrap;
+}
+.btn.primary { background: var(--brand); border-color: transparent; color: var(--brand-ink); }
+.btn:disabled { opacity: 0.5; cursor: default; }
+body.recording .controls { visibility: hidden; }
+
+.caption {
+  min-height: 2.6em;
+  max-width: 820px;
+  margin: 0 auto;
+  padding-inline: 16px;
+  text-align: center;
+  font-size: 1.15rem;
+  font-weight: 500;
+  color: var(--ink-2);
+  text-wrap: balance;
+  transition: opacity 0.35s;
+}
+.caption strong { color: var(--ink); font-weight: 600; }
+
+/* ---------- Stage ---------- */
+.stage { position: relative; flex: 1; min-height: 600px; }
+.scene {
+  position: absolute;
+  inset: 8px 0 28px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex; justify-content: center; align-items: center;
+  transition: opacity 0.35s 0.3s, transform 0.35s 0.3s;   /* the incoming scene waits for the outgoing one */
+}
+.scene[data-off] { opacity: 0; transform: translateY(12px) scale(0.99); pointer-events: none; transition-delay: 0s; }
+
+/* Browser window */
+.browser {
+  width: min(1240px, 100%);
+  height: min(780px, 100%);
+  display: flex; flex-direction: column;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+.chrome { display: flex; align-items: center; gap: 14px; padding: 10px 14px; background: var(--surface-2); border-bottom: 1px solid var(--line); }
+.dots { display: flex; gap: 6px; }
+.dots i { width: 11px; height: 11px; border-radius: 50%; background: var(--line); }
+.url { flex: 1; max-width: 460px; margin: 0 auto; padding: 5px 12px; border-radius: 7px; background: var(--surface);
+  color: var(--ink-3); font-size: 0.82rem; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.app { position: relative; flex: 1; min-height: 0; display: grid; grid-template-columns: 210px 1fr; }
+.side { display: flex; flex-direction: column; gap: 26px; padding: 22px 16px; border-right: 1px solid var(--line); background: var(--surface-2); }
+.nav { display: flex; flex-direction: column; gap: 2px; }
+.nav span { padding: 8px 10px; border-radius: 8px; color: var(--ink-2); font-weight: 500; }
+.nav span.on { background: var(--surface); color: var(--ink); box-shadow: 0 1px 2px rgb(20 24 40 / 0.06); }
+.who { margin-top: auto; font-size: 0.82rem; color: var(--ink-2); }
+.who b { display: block; color: var(--ink); }
+.main { min-width: 0; overflow-y: auto; padding: 32px 36px 48px; scroll-behavior: smooth; }
+.head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 24px; flex-wrap: wrap; }
+.head h1 { font-size: 1.55rem; font-weight: 700; letter-spacing: -0.01em; }
+.head p { color: var(--ink-2); margin-top: 4px; }
+
+.list { border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+.row {
+  display: grid; grid-template-columns: minmax(0, 1fr) 130px 170px 90px; align-items: center; gap: 16px;
+  width: 100%; padding: 15px 18px; border: 0; border-top: 1px solid var(--line); background: var(--surface);
+  text-align: left; cursor: pointer;
+}
+.row:first-child { border-top: 0; }
+.row:hover { background: var(--surface-2); }
+.row .name { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.row .muted { color: var(--ink-2); font-size: 0.9rem; }
+.row .date { text-align: right; font-variant-numeric: tabular-nums; }
+.row.fresh { animation: fresh 2.4s ease-out; }
+@keyframes fresh { from { background: var(--brand-soft); } }
+.badge { justify-self: start; padding: 3px 10px; border-radius: 999px; font-size: 0.78rem; font-weight: 600; white-space: nowrap;
+  background: color-mix(in srgb, currentColor 13%, transparent); }
+.badge.waiting { color: var(--warn); }
+.badge.progress { color: var(--brand); }
+.badge.ready { color: var(--ok); }
+
+/* Dialog inside the browser window */
+.overlay { position: absolute; inset: 0; display: grid; place-items: center; padding: 16px;
+  background: rgb(14 16 22 / 0.35); transition: opacity 0.25s; }
+.overlay[hidden] { display: none; }
+.dialog { width: min(440px, 100%); padding: 24px; border-radius: 14px; background: var(--surface); box-shadow: 0 24px 70px rgb(0 0 0 / 0.25);
+  display: flex; flex-direction: column; gap: 16px; animation: pop 0.3s ease-out; }
+@keyframes pop { from { opacity: 0; transform: translateY(8px) scale(0.98); } }
+.dialog h2 { font-size: 1.2rem; }
+.field { display: flex; flex-direction: column; gap: 6px; font-size: 0.88rem; font-weight: 600; }
+.field .input { min-height: 41px; padding: 9px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface-2);
+  font-weight: 400; font-size: 0.95rem; }
+.field .input.caret::after { content: ""; display: inline-block; width: 1.5px; height: 1.05em; margin-left: 1px; vertical-align: -2px;
+  background: var(--brand); animation: blink 1s steps(1) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+.select { display: flex; justify-content: space-between; }
+.actions { display: flex; justify-content: flex-end; gap: 8px; }
+.link-box { display: flex; gap: 8px; }
+.link-box .input { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ink); }
+.dialog .note { color: var(--ink-2); font-size: 0.92rem; }
+
+/* Briefing */
+.meta { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 6px; color: var(--ink-2); font-size: 0.9rem; }
+.meta span { white-space: nowrap; }
+.card { padding: 18px 20px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+.card h3 { font-size: 0.78rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-2); margin-bottom: 10px; }
+.card ul { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 5px; }
+.summary { background: var(--brand-soft); border-color: transparent; }
+.summary p { font-size: 1.08rem; line-height: 1.55; max-width: 70ch; }
+.briefing { display: flex; flex-direction: column; gap: 14px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
+.open { border-color: color-mix(in srgb, var(--warn) 45%, var(--line)); }
+.open h3 { color: var(--warn); }
+.toast { position: absolute; left: 50%; bottom: 20px; transform: translateX(-50%); padding: 9px 16px; border-radius: 9px;
+  background: var(--ink); color: var(--surface); font-size: 0.9rem; font-weight: 500; animation: pop 0.25s ease-out; }
+
+/* ---------- Client scene: phone + engine panel ---------- */
+.client { display: flex; align-items: center; justify-content: center; gap: 48px; width: 100%; height: 100%; }
+.phone {
+  flex: none;
+  width: 372px;
+  height: min(780px, 100%);
+  border: 11px solid var(--device);
+  border-radius: 48px;
+  background: var(--device);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  position: relative;
+}
+.screen { position: absolute; inset: 0; border-radius: 37px; overflow: hidden; background: #fbfbf9;
+  color: #1b1c1f; display: flex; flex-direction: column; }
+/* The survey page keeps the agency's light look in both themes, like a real phone screenshot. */
+.notch { position: absolute; top: 9px; left: 50%; width: 96px; height: 26px; margin-left: -48px; border-radius: 20px; background: var(--device); z-index: 3; }
+.s-progress { height: 3px; margin-top: 46px; background: #e7e5e0; }
+.s-progress i { display: block; height: 100%; width: 100%; background: #0e7c66; transform-origin: left;
+  transform: scaleX(0); transition: transform 0.9s cubic-bezier(.22,1,.36,1); }
+.s-head { display: flex; align-items: center; gap: 9px; padding: 14px 22px; font-size: 0.82rem; font-weight: 600; color: #5d5e63; }
+.s-mark { width: 24px; height: 24px; border-radius: 7px; background: #0e7c66; color: #fff; display: grid; place-items: center; font-size: 0.78rem; font-weight: 700; }
+.s-body { flex: 1; display: flex; align-items: center; padding: 8px 24px 28px; }
+.s-view { width: 100%; animation: rise 0.55s cubic-bezier(.22,1,.36,1) both; }
+@keyframes rise { from { opacity: 0; transform: translateY(14px); } }
+.s-eyebrow { color: #0e7c66; font-weight: 600; font-size: 0.9rem; margin-bottom: 10px; }
+.s-q { font-family: var(--font-q); font-size: 1.62rem; line-height: 1.24; font-weight: 500; letter-spacing: -0.005em; text-wrap: balance; }
+.s-hint { margin-top: 10px; color: #6a6b70; font-size: 0.9rem; line-height: 1.45; }
+.s-facts { margin: 18px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 4px; color: #5d5e63; font-size: 0.92rem; }
+.s-facts li::before { content: "·"; margin-right: 8px; color: #0e7c66; font-weight: 700; }
+.s-answer { width: 100%; margin-top: 26px; padding: 6px 0 10px; border: 0; border-bottom: 2px solid #0e7c66; background: transparent;
+  font: inherit; font-size: 1.02rem; line-height: 1.5; color: #1b1c1f; resize: none; overflow: hidden; outline: none; min-height: 44px; }
+.s-answer::placeholder { color: #a3a4a8; }
+.s-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; }
+.s-skip { color: #6a6b70; font-size: 0.88rem; text-decoration: underline; text-underline-offset: 3px; text-decoration-color: #d9d7d2; }
+.s-btn { padding: 12px 22px; border: 0; border-radius: 999px; background: #0e7c66; color: #fff; font-weight: 600; cursor: pointer; }
+.s-btn:disabled { opacity: 0.35; cursor: default; }
+.s-start { margin-top: 28px; }
+.s-thinking { display: flex; flex-direction: column; align-items: center; gap: 14px; color: #6a6b70; text-align: center; }
+.s-dots { display: flex; gap: 7px; }
+.s-dots i { width: 9px; height: 9px; border-radius: 50%; background: #0e7c66; animation: pulse 1.1s ease-in-out infinite; }
+.s-dots i:nth-child(2) { animation-delay: 0.15s; } .s-dots i:nth-child(3) { animation-delay: 0.3s; }
+@keyframes pulse { 0%, 80%, 100% { opacity: 0.25; transform: scale(0.8); } 40% { opacity: 1; transform: scale(1); } }
+.s-check { width: 48px; height: 48px; border-radius: 50%; background: #e2f3ee; color: #0e7c66; display: grid; place-items: center; margin-bottom: 20px; }
+.s-done p { margin-top: 12px; color: #5d5e63; line-height: 1.55; }
+
+.engine {
+  width: 360px;
+  flex: none;
+  padding: 22px;
+  border-radius: 16px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow);
+  display: flex; flex-direction: column; gap: 18px;
+}
+.engine-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.engine-head h2 { font-size: 0.78rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-2); }
+.engine-head span { font-size: 0.85rem; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+.topics { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 9px; }
+.topics li { display: flex; justify-content: space-between; align-items: center; gap: 12px; font-weight: 500; }
+.pill { padding: 2px 10px; border-radius: 999px; font-size: 0.75rem; font-weight: 600; transition: color 0.4s, background 0.4s;
+  background: color-mix(in srgb, currentColor 13%, transparent); }
+.pill.missing { color: var(--ink-3); }
+.pill.partial { color: var(--warn); }
+.pill.covered { color: var(--ok); }
+.pill.changed { animation: bump 0.6s ease-out; }
+@keyframes bump { 40% { transform: scale(1.15); } }
+.why { padding: 12px 14px; border-radius: 10px; background: var(--surface-2); font-size: 0.92rem; color: var(--ink-2); min-height: 4.4em; }
+.why b { display: block; font-size: 0.72rem; letter-spacing: 0.07em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 3px; }
+.engine-foot { display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--ink-3); }
+
+/* ---------- Title and closing slates (autoplay / video) ---------- */
+.slate {
+  position: fixed; inset: 0; z-index: 40;
+  display: grid; place-items: center;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  background: var(--stage);
+  opacity: 0; pointer-events: none; transition: opacity 0.6s;
+}
+.slate.show { opacity: 1; pointer-events: auto; }
+.slate-inner { max-width: 960px; display: flex; flex-direction: column; align-items: center; gap: 24px; text-align: center; }
+.slate.show .slate-inner > * { animation: rise 0.8s cubic-bezier(.22,1,.36,1) both; }
+.slate.show .slate-inner > :nth-child(2) { animation-delay: 0.15s; }
+.slate.show .slate-inner > :nth-child(3) { animation-delay: 0.3s; }
+.slate.show .slate-inner > :nth-child(4) { animation-delay: 0.45s; }
+.wordmark { display: flex; align-items: center; gap: 12px; font-size: 1.5rem; font-weight: 700; }
+.wordmark .logo-mark { width: 38px; height: 38px; border-radius: 11px; }
+.wordmark .logo-mark svg { width: 22px; height: 22px; }
+.slate h1 { font-family: var(--font-q); font-weight: 500; font-size: clamp(2.2rem, 4.6vw, 4.2rem); line-height: 1.08; letter-spacing: -0.015em; text-wrap: balance; }
+.slate p { max-width: 42ch; font-size: clamp(1.05rem, 1.6vw, 1.4rem); color: var(--ink-2); text-wrap: balance; }
+.facts { display: flex; flex-wrap: wrap; justify-content: center; gap: 16px; margin-top: 8px; }
+.fact { min-width: 210px; padding: 18px 24px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); text-align: left; }
+.fact b { display: block; font-size: 1.7rem; font-weight: 700; color: var(--brand); font-variant-numeric: tabular-nums; }
+.fact span { color: var(--ink-2); }
+
+/* ---------- Fake cursor for autoplay ---------- */
+.cursor { position: fixed; left: 0; top: 0; z-index: 50; width: 22px; height: 22px; pointer-events: none;
+  transform: translate(-60px, -60px); transition: transform 0.75s cubic-bezier(.45,.05,.25,1); }
+.cursor svg { width: 22px; height: 22px; filter: drop-shadow(0 2px 3px rgb(0 0 0 / 0.3)); }
+.cursor[hidden] { display: none; }
+.ripple { position: fixed; z-index: 49; width: 34px; height: 34px; margin: -17px 0 0 -17px; border-radius: 50%; pointer-events: none;
+  background: color-mix(in srgb, var(--brand) 35%, transparent); animation: ripple 0.5s ease-out forwards; }
+@keyframes ripple { from { transform: scale(0.3); opacity: 1; } to { transform: scale(1.4); opacity: 0; } }
+body.autoplaying .stage { pointer-events: none; }
+
+/* ---------- Narrow screens ---------- */
+@media (max-width: 1100px), (max-height: 700px) {
+  .stage { min-height: 0; padding-block: 8px 28px; }
+  .scene { position: static; height: auto; }
+  .scene[data-off] { display: none; }
+  .client { flex-direction: column; gap: 24px; height: auto; }
+  .engine { width: min(372px, 100%); }
+  .browser { height: 720px; }
+  .phone { height: 720px; }
+}
+@media (max-width: 760px) {
+  .bar { flex-wrap: wrap; gap: 12px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  .steps { order: 3; width: 100%; justify-content: flex-start; }
+  .steps .label-long { display: none; }
+  .controls { margin-left: auto; }
+  .caption { font-size: 1rem; }
+  .app { grid-template-columns: 1fr; }
+  .side { display: none; }
+  .main { padding: 20px 16px 32px; }
+  .row { grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; }
+  .row .type, .row .date { display: none; }
+  .browser { height: 640px; }
+  .phone { width: min(372px, 100%); height: 680px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
+</style>
+
+<header class="bar">
+  <div class="logo">
+    <span class="logo-mark" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+    Scopewise
+  </div>
+  <ol class="steps" aria-label="Demo chapters">
+    <li><button type="button" data-ch="1"><span class="n">1</span><span>Agency<span class="label-long"> sends a survey</span></span></button></li>
+    <li><button type="button" data-ch="2"><span class="n">2</span><span>Client<span class="label-long"> answers</span></span></button></li>
+    <li><button type="button" data-ch="3"><span class="n">3</span><span>Briefing<span class="label-long"> ready</span></span></button></li>
+  </ol>
+  <div class="controls">
+    <button class="btn" type="button" id="restart">Restart</button>
+    <button class="btn primary" type="button" id="play">▶ Play demo</button>
+  </div>
+</header>
+
+<p class="caption" id="caption" aria-live="polite"></p>
+
+<main class="stage">
+  <!-- Agency: Scopewise dashboard in a browser window -->
+  <section class="scene" id="scene-agency" aria-label="Agency dashboard">
+    <div class="browser">
+      <div class="chrome"><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span><span class="url" id="url">app.scopewise.io/surveys</span></div>
+      <div class="app">
+        <aside class="side">
+          <div class="logo"><span class="logo-mark" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Scopewise</div>
+          <nav class="nav"><span class="on">Surveys</span><span>Branding</span><span>Team</span></nav>
+          <div class="who"><b>Jonas Berg</b>Pixel &amp; Co</div>
+        </aside>
+        <div class="main" id="agency-main"></div>
+        <div class="overlay" id="overlay" hidden></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Client: survey on a phone, plus what the engine is thinking -->
+  <section class="scene" id="scene-client" aria-label="Client survey" data-off>
+    <div class="client">
+      <div class="phone">
+        <div class="screen">
+          <span class="notch" aria-hidden="true"></span>
+          <div class="s-progress"><i id="s-progress"></i></div>
+          <div class="s-head"><span class="s-mark">P</span>Pixel &amp; Co</div>
+          <div class="s-body" id="s-body"></div>
+        </div>
+      </div>
+      <aside class="engine" aria-label="Behind the scenes">
+        <div class="engine-head"><h2>Behind the scenes</h2><span id="engine-count">0 answers</span></div>
+        <ul class="topics" id="topics"></ul>
+        <div class="why" id="why"><b>Next question</b>Waiting for the client to start.</div>
+        <div class="engine-foot"><span>Language: <span id="lang">English</span></span><span id="engine-progress">0 % understood</span></div>
+      </aside>
+    </div>
+  </section>
+</main>
+
+<div class="slate" id="slate" aria-live="polite"><div class="slate-inner" id="slate-inner"></div></div>
+
+<div class="cursor" id="cursor" hidden><svg viewBox="0 0 24 24"><path d="M5 3l14 8-6.5 1.5L10 19z" fill="#111" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/></svg></div>
+
+<script>
+// ---------- Script of the demo ----------
+const CLIENT = { name: "Hartmann Bakery", contact: "Anna", email: "anna@hartmann-bakery.de", link: "scopewise.io/s/hb-7f3a" };
+
+const TOPICS = [
+  ["goals", "Goals"], ["audience", "Audience"], ["scope", "Pages & features"], ["design", "Design"],
+  ["content", "Content"], ["technical", "Technical"], ["budget", "Budget & timeline"],
+];
+
+// Each turn: the question, its hint, why the engine chose it, the client's answer,
+// and the coverage the engine assesses after that answer.
+const TURNS = [
+  { q: "What should the new website do for Hartmann Bakery?", hint: "More orders, fewer phone calls, a fresher look – anything goes.",
+    why: "Starts broad to find the main goal.",
+    a: "Our website is from 2014 and looks awful on phones. Most of all, customers should be able to pre-order celebration cakes online, so we're not stuck on the phone every Saturday.",
+    set: { goals: "covered", scope: "partial" } },
+  { q: "You mentioned cake pre-orders. What do you need to know from a customer when they order a cake?", hint: "For example size, flavour, pickup date or a message on top.",
+    why: "Follows up on the key feature the client named.",
+    a: "Size, flavour, the text on the cake, the pickup date and which of our two shops they'll collect it from.",
+    set: { technical: "partial" } },
+  { q: "Who are the customers you'd most like to reach with the new website?", hint: "",
+    why: "Audience is still missing.",
+    a: "Families from the neighbourhood. And a few offices nearby that order breakfast platters for their meetings.",
+    set: { audience: "covered" } },
+  { q: "Breakfast platters for offices sound like a second kind of order. Should businesses be able to order those online too?", hint: "",
+    why: "Picks up a second order type the client mentioned in passing.",
+    a: "Yes, that would be great. Right now they email us and it gets messy.",
+    set: { scope: "covered" } },
+  { q: "How should the website look and feel? Websites you like are a great help.", hint: "Links or just names are fine.",
+    why: "Design is still missing.",
+    a: "Warm and homemade, with big photos of our bread and cakes. Our logo is dark red and cream, so those colours should stay.",
+    set: { design: "covered" } },
+  { q: "Which photos and texts do you already have for the new website?", hint: "A rough overview is enough.",
+    why: "Content is still missing.",
+    a: "Hardly any good photos, to be honest. I can write about our family history, and my daughter Lea could post the daily specials.",
+    set: { content: "covered" } },
+  { q: "Is there a date the new website needs to be live by?", hint: "An event, a season, an opening…",
+    why: "Budget & timeline is the next open topic.",
+    a: "Before the Christmas season starts, so the end of November.",
+    set: { budget: "partial" } },
+  { q: "What budget range did you have in mind?", hint: "A rough range is fine – it helps Pixel & Co suggest the right solution.",
+    why: "Completes budget & timeline.",
+    a: "I'm honestly not sure what websites cost. Maybe 4,000 to 6,000 euros?",
+    set: { budget: "covered" } },
+  { q: "Do you already own your web address, or does someone else look after it?", hint: "If you're not sure, just say so.",
+    why: "Asks about the domain in plain words instead of “hosting”.",
+    a: "We own hartmann-bakery.de. My nephew set it up years ago, I don't know the details.",
+    set: { technical: "covered" } },
+];
+
+const SURVEYS = [
+  { name: "Northside Dental", type: "Website", status: "waiting", date: "Oct 21" },
+  { name: "Weber Autohaus", type: "Website", status: "progress", date: "Oct 20" },
+  { name: "Lotus Yoga", type: "Web app", status: "ready", date: "Oct 18" },
+];
+const STATUS = { waiting: "Waiting for client", progress: "In progress", ready: "Briefing ready" };
+
+const BRIEFING = {
+  summary: "Hartmann Bakery, a family bakery with two shops, wants a modern, mobile-friendly website where customers pre-order celebration cakes and nearby offices order breakfast platters online. It has to launch before the Christmas season.",
+  sections: [
+    ["Goals", ["Replace the 2014 site that doesn't work on phones", "Move celebration-cake pre-orders from phone to online", "Free up staff time on Saturdays"]],
+    ["Audience", ["Families from the neighbourhood", "Nearby offices ordering breakfast platters for meetings"]],
+    ["Pages & features", ["Cake pre-order: size, flavour, cake text, pickup date, pickup shop (2 shops)", "Breakfast-platter orders for businesses", "Daily specials", "Family history / about us"]],
+    ["Design", ["Warm, homemade feel", "Large photos of bread and cakes", "Keep existing logo colours: dark red and cream"]],
+    ["Content", ["Few usable photos – plan a photo shoot", "Owner writes the family history", "Daughter (Lea) posts daily specials"]],
+    ["Technical", ["Owns hartmann-bakery.de", "Set up by a relative; current hosting unknown", "Specials must be easy to update"]],
+    ["Budget & timeline", ["€4,000–6,000 (client unsure, open to advice)", "Live by end of November"]],
+  ],
+  open: ["Where is the current site hosted, and who has the login?", "Should customers pay online or when collecting?", "How should orders reach the shops – email, printout or an order screen?"],
+};
+
+const CAPTIONS = {
+  list: "<strong>Pixel &amp; Co</strong> has a new client. Instead of booking a kickoff call, they send a Scopewise survey.",
+  dialog: "The agency only enters the client's name, email and project type.",
+  link: "Scopewise creates a private link for the client.",
+  welcome: "<strong>Anna</strong> opens the link on her phone. The survey carries the agency's branding.",
+  asking: "One calm question at a time. <strong>Each answer shapes the next question.</strong>",
+  done: "Finished in about 11 minutes. No meeting, no back-and-forth emails.",
+  ready: "The briefing is ready for Pixel &amp; Co.",
+  briefing: "<strong>A structured briefing</strong> the agency can quote and design from right away.",
+};
+
+// ---------- Helpers ----------
+const $ = (s, root = document) => root.querySelector(s);
+const esc = (s) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+class Cancelled extends Error {}
+let runId = 0;          // bumps on restart/jump; running autoplay loops stop at their next sleep
+let autoplay = false;
+
+function sleep(ms, id = runId) {
+  return new Promise((resolve, reject) =>
+    setTimeout(() => (id === runId ? resolve() : reject(new Cancelled())), reduceMotion ? Math.min(ms, 150) : ms));
+}
+
+function caption(key) {
+  const el = $("#caption");
+  el.style.opacity = 0;
+  setTimeout(() => { el.innerHTML = CAPTIONS[key]; el.style.opacity = 1; }, 200);
+}
+
+function setChapter(ch) {
+  document.querySelectorAll(".steps button").forEach((b) => {
+    const n = Number(b.dataset.ch);
+    if (n === ch) b.setAttribute("aria-current", "step");
+    else b.removeAttribute("aria-current");
+    b.classList.toggle("done", n < ch);
+  });
+  $("#scene-agency").toggleAttribute("data-off", ch === 2);
+  $("#scene-client").toggleAttribute("data-off", ch !== 2);
+}
+
+// ---------- State ----------
+let state;
+function freshState() {
+  return {
+    surveys: SURVEYS.map((s) => ({ ...s })),
+    turn: -1,                                  // index of the question on screen
+    coverage: Object.fromEntries(TOPICS.map(([k]) => [k, "missing"])),
+    typed: "",                                 // ghost-typed answer in manual mode
+    answers: 0,
+    busy: false,                               // guards against double submits
+  };
+}
+
+// ---------- Agency views ----------
+function renderList(freshName) {
+  $("#url").textContent = "app.scopewise.io/surveys";
+  $("#agency-main").innerHTML = `
+    <div class="head">
+      <div><h1>Surveys</h1><p>Send a survey link to a client and get a structured briefing back.</p></div>
+      <button class="btn primary" type="button" id="new-survey">+ New survey</button>
+    </div>
+    <div class="list">
+      ${state.surveys.map((s, i) => `
+        <button class="row ${s.name === freshName ? "fresh" : ""}" type="button" data-row="${i}">
+          <span class="name">${esc(s.name)}</span>
+          <span class="muted type">${s.type}</span>
+          <span class="badge ${s.status}">${STATUS[s.status]}</span>
+          <span class="muted date">${s.date}</span>
+        </button>`).join("")}
+    </div>`;
+  $("#new-survey").onclick = () => openDialog();
+  document.querySelectorAll("[data-row]").forEach((row) => {
+    row.onclick = () => {
+      const s = state.surveys[Number(row.dataset.row)];
+      if (s.name === CLIENT.name && s.status === "ready") showBriefing();
+      else toast("This demo follows Hartmann Bakery.");
+    };
+  });
+}
+
+function dialogForm() {
+  return `
+    <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="dlg-title">
+      <h2 id="dlg-title">New survey</h2>
+      <div class="field">Client name<div class="input" id="f-name"></div></div>
+      <div class="field">Client email<div class="input" id="f-email"></div></div>
+      <div class="field">Project type<div class="input select"><span>Website</span><span aria-hidden="true">▾</span></div></div>
+      <div class="actions"><button class="btn" type="button" id="cancel">Cancel</button><button class="btn primary" type="button" id="create">Create survey</button></div>
+    </div>`;
+}
+
+async function typeText(el, text, id, perChar = 45) {
+  el.classList.add("caret");
+  for (let i = 1; i <= text.length; i++) {
+    el.textContent = text.slice(0, i);
+    await sleep(perChar, id);
+  }
+  el.classList.remove("caret");
+}
+
+async function openDialog() {
+  const id = runId;
+  caption("dialog");
+  const overlay = $("#overlay");
+  overlay.innerHTML = dialogForm();
+  overlay.hidden = false;
+  $("#cancel").onclick = () => { overlay.hidden = true; caption("list"); };
+  $("#create").onclick = () => createSurvey();
+  // The form fills itself, in autoplay and when presenting live.
+  try {
+    await sleep(350, id);
+    await typeText($("#f-name"), CLIENT.name, id);
+    await sleep(200, id);
+    await typeText($("#f-email"), CLIENT.email, id, 30);
+  } catch (e) { if (!(e instanceof Cancelled)) throw e; }
+}
+
+async function createSurvey() {
+  const id = runId;
+  $("#f-name").textContent = CLIENT.name;
+  $("#f-email").textContent = CLIENT.email;
+  $("#create").disabled = true;
+  $("#create").textContent = "Creating…";
+  await sleep(700, id);
+  if (!state.surveys.some((s) => s.name === CLIENT.name)) {
+    state.surveys.unshift({ name: CLIENT.name, type: "Website", status: "waiting", date: "Oct 22" });
+  }
+  renderList(CLIENT.name);
+  $("#overlay").innerHTML = `
+    <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="dlg-title">
+      <h2 id="dlg-title">Survey ready</h2>
+      <p class="note">Send this link to ${CLIENT.contact} at ${CLIENT.name}. The briefing appears here as soon as she's done.</p>
+      <div class="link-box"><div class="field" style="flex:1"><div class="input">${CLIENT.link}</div></div><button class="btn" type="button" id="copy">Copy link</button></div>
+      <div class="actions"><button class="btn primary" type="button" id="send">Open as client →</button></div>
+    </div>`;
+  caption("link");
+  $("#copy").onclick = () => { $("#copy").textContent = "Copied ✓"; };
+  $("#send").onclick = () => toClient();
+}
+
+function showBriefing() {
+  $("#overlay").hidden = true;
+  $("#url").textContent = "app.scopewise.io/surveys/hartmann-bakery";
+  caption("briefing");
+  $("#agency-main").innerHTML = `
+    <div class="head">
+      <div>
+        <h1>${CLIENT.name}</h1>
+        <div class="meta"><span>Website</span><span>Completed Oct 22</span><span>9 questions</span><span>11 min</span></div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <span class="badge ready">Briefing ready</span>
+        <button class="btn" type="button" data-export>Export PDF</button>
+      </div>
+    </div>
+    <article class="briefing">
+      <section class="card summary"><h3>Summary</h3><p>${BRIEFING.summary}</p></section>
+      <div class="grid">
+        ${BRIEFING.sections.map(([title, items]) => `<section class="card"><h3>${esc(title)}</h3><ul>${items.map((i) => `<li>${esc(i)}</li>`).join("")}</ul></section>`).join("")}
+      </div>
+      <section class="card open"><h3>Open questions for the client</h3><ul>${BRIEFING.open.map((i) => `<li>${esc(i)}</li>`).join("")}</ul></section>
+    </article>`;
+  $("[data-export]").onclick = () => toast("Export isn't part of this demo.");
+  $("#agency-main").scrollTop = 0;
+}
+
+function toast(text) {
+  document.querySelectorAll(".toast").forEach((t) => t.remove());
+  const t = document.createElement("div");
+  t.className = "toast";
+  t.textContent = text;
+  $(".app").append(t);
+  setTimeout(() => t.remove(), 2200);
+}
+
+// ---------- Client survey ----------
+function renderTopics(changed = []) {
+  $("#topics").innerHTML = TOPICS.map(([key, label]) => {
+    const value = state.coverage[key];
+    return `<li><span>${label}</span><span class="pill ${value} ${changed.includes(key) ? "changed" : ""}">${value[0].toUpperCase() + value.slice(1)}</span></li>`;
+  }).join("");
+  const score = TOPICS.reduce((sum, [k]) => sum + ({ covered: 1, partial: 0.5 }[state.coverage[k]] ?? 0), 0) / TOPICS.length;
+  const answers = state.answers;
+  $("#engine-count").textContent = `${answers} answer${answers === 1 ? "" : "s"}`;
+  $("#engine-progress").textContent = `${Math.round(score * 100)} % understood`;
+  return score;
+}
+
+function setProgress(score) {
+  $("#s-progress").style.transform = `scaleX(${Math.max(score, 0.03)})`;
+}
+
+function why(text, label = "Next question") {
+  $("#why").innerHTML = `<b>${label}</b>${esc(text)}`;
+}
+
+function surveyWelcome() {
+  $("#s-body").innerHTML = `
+    <div class="s-view">
+      <p class="s-eyebrow">Hi ${CLIENT.contact}</p>
+      <h1 class="s-q">Pixel &amp; Co would like to understand your website project.</h1>
+      <ul class="s-facts"><li>About 10–15 minutes</li><li>One question at a time</li><li>There are no wrong answers</li></ul>
+      <button class="s-btn s-start" type="button" id="s-start">Let's start →</button>
+    </div>`;
+  $("#s-start").onclick = () => nextQuestion();
+}
+
+function surveyThinking() {
+  $("#s-body").innerHTML = `<div class="s-view s-thinking" aria-busy="true"><span class="s-dots"><i></i><i></i><i></i></span><p>Thinking about your answer…</p></div>`;
+}
+
+function surveyQuestion(turn) {
+  $("#s-body").innerHTML = `
+    <form class="s-view" id="s-form">
+      <h1 class="s-q">${esc(turn.q)}</h1>
+      ${turn.hint ? `<p class="s-hint">${esc(turn.hint)}</p>` : ""}
+      <textarea class="s-answer" id="s-answer" rows="1" placeholder="Type your answer…" aria-label="Your answer"></textarea>
+      <div class="s-actions"><span class="s-skip">Not sure? Skip</span><button class="s-btn" type="submit" id="s-continue" disabled>Continue →</button></div>
+    </form>`;
+  const area = $("#s-answer");
+  state.typed = "";
+  // Presenting live: any key reveals the scripted answer, so there are no typos on stage.
+  area.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") { e.preventDefault(); if (state.typed) submitAnswer(); return; }
+    if (e.key.length !== 1 && e.key !== "Backspace") return;
+    e.preventDefault();
+    state.typed = turn.a.slice(0, Math.min(turn.a.length, state.typed.length + 4));
+    showTyped();
+  });
+  $("#s-form").onsubmit = (e) => { e.preventDefault(); submitAnswer(); };
+  if (!autoplay) area.focus();
+}
+
+function showTyped() {
+  const area = $("#s-answer");
+  area.value = state.typed;
+  area.style.height = "auto";
+  area.style.height = area.scrollHeight + "px";
+  $("#s-continue").disabled = !state.typed;
+}
+
+async function nextQuestion() {
+  const id = runId;
+  caption("asking");
+  surveyThinking();
+  state.turn += 1;
+  const turn = TURNS[state.turn];
+  why(turn.why);
+  await sleep(state.turn === 0 ? 900 : 1300, id);
+  surveyQuestion(turn);
+  setStatus("progress");
+  state.busy = false;
+}
+
+async function submitAnswer() {
+  if (state.busy) return;
+  state.busy = true;
+  const id = runId;
+  const turn = TURNS[state.turn];
+  state.typed = turn.a;           // finish the scripted answer if it was only partly shown
+  showTyped();
+  await sleep(250, id);
+  const changed = Object.keys(turn.set);
+  Object.assign(state.coverage, turn.set);
+  state.answers += 1;
+  const score = renderTopics(changed);
+  setProgress(state.turn === TURNS.length - 1 ? 1 : score);
+  if (state.turn === TURNS.length - 1) {
+    why("All topics covered after 9 questions. Writing the briefing for Pixel & Co.", "Interview complete");
+    await finishSurvey(id);
+  } else {
+    await nextQuestion();
+  }
+}
+
+async function finishSurvey(id) {
+  surveyThinking();
+  await sleep(1100, id);
+  $("#s-body").innerHTML = `
+    <div class="s-view s-done">
+      <span class="s-check" aria-hidden="true"><svg viewBox="0 0 24 24" width="26" height="26"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+      <h1 class="s-q">Thank you, ${CLIENT.contact}!</h1>
+      <p>Pixel &amp; Co now has a clear picture of your project and will get back to you soon.</p>
+      <button class="s-btn s-start" type="button" id="s-agency">Back to the agency →</button>
+    </div>`;
+  caption("done");
+  setStatus("ready");
+  $("#s-agency").onclick = () => toAgency();
+}
+
+function setStatus(status) {
+  const s = state.surveys.find((x) => x.name === CLIENT.name);
+  if (s) s.status = status;
+}
+
+function toClient() {
+  $("#overlay").hidden = true;
+  setChapter(2);
+  caption("welcome");
+  surveyWelcome();
+  setProgress(0);
+  renderTopics();
+  why("Waiting for the client to start.", "Next question");
+}
+
+function toAgency() {
+  setChapter(3);
+  renderList(CLIENT.name);
+  caption("ready");
+}
+
+// ---------- Title and closing slates ----------
+const WORDMARK = `<div class="wordmark"><span class="logo-mark" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Scopewise</div>`;
+const SLATES = {
+  intro: `${WORDMARK}
+    <h1>Client onboarding for web agencies, without the meetings.</h1>
+    <p>An adaptive survey interviews your client and turns the conversation into a build-ready briefing.</p>`,
+  outro: `${WORDMARK}
+    <h1>From first contact to a build-ready briefing.</h1>
+    <div class="facts">
+      <div class="fact"><b>1 link</b><span>instead of a kickoff call</span></div>
+      <div class="fact"><b>~11 min</b><span>of the client's time</span></div>
+      <div class="fact"><b>7 sections</b><span>in every briefing</span></div>
+    </div>`,
+};
+
+function showSlate(kind) {
+  $("#slate-inner").innerHTML = SLATES[kind];
+  $("#slate").classList.add("show");
+}
+
+function hideSlate() {
+  $("#slate").classList.remove("show");
+}
+
+// ---------- Autoplay (for recording the video) ----------
+const cursor = $("#cursor");
+let cursorPos = { x: innerWidth / 2, y: innerHeight + 40 };
+
+async function moveTo(el, id) {
+  const r = el.getBoundingClientRect();
+  cursorPos = { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+  cursor.style.transform = `translate(${cursorPos.x - 4}px, ${cursorPos.y - 3}px)`;
+  await sleep(800, id);
+}
+
+async function clickOn(el, id) {
+  await moveTo(el, id);
+  const ripple = document.createElement("span");
+  ripple.className = "ripple";
+  ripple.style.left = cursorPos.x + "px";
+  ripple.style.top = cursorPos.y + "px";
+  document.body.append(ripple);
+  setTimeout(() => ripple.remove(), 600);
+  await sleep(160, id);
+  el.click();
+  await sleep(250, id);
+}
+
+async function waitFor(selector, id) {
+  for (;;) {
+    const el = $(selector);
+    if (el && !el.disabled) return el;
+    await sleep(80, id);
+  }
+}
+
+async function play() {
+  reset();
+  showSlate("intro");
+  const id = runId;
+  autoplay = true;
+  document.body.classList.add("autoplaying");
+  cursor.hidden = false;
+  $("#play").disabled = true;
+  try {
+    await sleep(4500, id);
+    hideSlate();
+
+    // Chapter 1 – agency
+    await sleep(2600, id);
+    await clickOn($("#new-survey"), id);
+    await sleep(2900, id);                               // form types itself
+    await clickOn($("#create"), id);
+    await waitFor("#copy", id);
+    await sleep(1400, id);
+    await clickOn($("#copy"), id);
+    await sleep(900, id);
+    await clickOn($("#send"), id);
+
+    // Chapter 2 – client
+    await sleep(2600, id);
+    await clickOn($("#s-start"), id);
+    for (let i = 0; i < TURNS.length; i++) {
+      await waitFor("#s-answer", id);
+      await sleep(i === 0 ? 1600 : 1100, id);            // time to read the question
+      const answer = TURNS[i].a;
+      for (let n = 1; n <= answer.length; n += 2) {
+        state.typed = answer.slice(0, n);
+        showTyped();
+        await sleep(32, id);
+      }
+      state.typed = answer;
+      showTyped();
+      await sleep(500, id);
+      await clickOn($("#s-continue"), id);
+      if (i < TURNS.length - 1) await sleep(300, id);
+      else await waitFor("#s-agency", id);
+    }
+    await sleep(2600, id);
+    await clickOn($("#s-agency"), id);
+
+    // Chapter 3 – briefing
+    await sleep(1800, id);
+    await clickOn($(".row.fresh") ?? $("[data-row='0']"), id);
+    await sleep(3200, id);
+    const main = $("#agency-main");
+    main.scrollTo({ top: main.scrollHeight, behavior: "smooth" });
+    await sleep(3500, id);
+    main.scrollTo({ top: 0, behavior: "smooth" });
+    await sleep(2200, id);
+    showSlate("outro");
+    await sleep(6000, id);
+    document.body.dataset.finished = "true";            // the recorder waits for this
+  } catch (e) {
+    if (!(e instanceof Cancelled)) throw e;
+  } finally {
+    if (id === runId) endAutoplay();
+  }
+}
+
+function endAutoplay() {
+  autoplay = false;
+  document.body.classList.remove("autoplaying");
+  cursor.hidden = true;
+  $("#play").disabled = false;
+}
+
+// ---------- Navigation ----------
+function reset() {
+  runId += 1;
+  endAutoplay();
+  delete document.body.dataset.finished;
+  hideSlate();
+  state = freshState();
+  $("#overlay").hidden = true;
+  setChapter(1);
+  renderList();
+  caption("list");
+  renderTopics();
+  setProgress(0);
+}
+
+function jump(ch) {
+  reset();
+  if (ch === 1) return;
+  state.surveys.unshift({ name: CLIENT.name, type: "Website", status: "waiting", date: "Oct 22" });
+  if (ch === 2) { toClient(); return; }
+  Object.keys(state.coverage).forEach((k) => (state.coverage[k] = "covered"));
+  state.turn = TURNS.length - 1;
+  state.answers = TURNS.length;
+  setStatus("ready");
+  setChapter(3);
+  showBriefing();
+}
+
+document.querySelectorAll(".steps button").forEach((b) => (b.onclick = () => jump(Number(b.dataset.ch))));
+$("#restart").onclick = () => reset();
+$("#play").onclick = () => play();
+
+reset();
+if (location.hash === "#record" || location.hash === "#autoplay") {
+  if (location.hash === "#record") document.body.classList.add("recording");
+  (document.fonts?.ready ?? Promise.resolve()).then(() => setTimeout(play, 600));
+}
+</script>
+
+</body></html>
