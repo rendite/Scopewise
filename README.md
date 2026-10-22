@@ -106,6 +106,11 @@ As long as the backend endpoints are not built yet, the apps run against
 built-in **mock data** (`VITE_USE_MOCKS=true` in `.env.development`), so
 frontend work never waits for the backend.
 
+## Demo
+
+A clickable demo and a presentation video of the full flow live in
+[`demo/`](demo/README.md).
+
 ## Working together
 
 Read **[CONTRIBUTING.md](CONTRIBUTING.md)** before your first change. In short:
